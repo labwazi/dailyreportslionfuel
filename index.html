@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Black Lion Console — Zahiir</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#f59e0b;--muted:#94a3b8;--success:#10b981;color-scheme:dark}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{margin:0;background:linear-gradient(180deg,#031024 0%,#071226 100%);color:#e6eef8;padding:18px}
+    header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .container{display:grid;grid-template-columns:360px 1fr;gap:16px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    select,input,button,textarea{font-size:14px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    .student-list{max-height:60vh;overflow:auto;margin-top:8px}
+    .student-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,0.01)}
+    .student-item small{color:var(--muted)}
+    .tasks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+    .tasks label{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.01);padding:8px;border-radius:8px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .btn{cursor:pointer;border:none;padding:10px 12px;border-radius:10px;background:var(--accent);color:#07203b;font-weight:700}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{padding:8px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+    .summary{display:flex;gap:12px;align-items:center}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.green{background:var(--success)}
+    .dot.yellow{background:#f59e0b}
+    .dot.red{background:#ef4444}
+    .small{font-size:13px;color:var(--muted)}
+    footer{margin-top:14px;color:var(--muted);font-size:12px}
+    @media(max-width:900px){.container{grid-template-columns:1fr} .student-list{max-height:24vh}}
+  </style>
+</head>
+<body>
+  <header>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24'%3E%3Cpath fill='%23f59e0b' d='M12 2l3 6 6 .5-4.5 4 1 6L12 16l-5.5 2.5 1-6L3 8.5 9 8 12 2z'/%3E%3C/svg%3E" alt="logo">
+    <div>
+      <h1>Black Lion Console — Zahiir</h1>
+      <div class="small">Fast frontend-only console. No backend required. Data stored locally.</div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Left column: control & student list -->
+    <div class="card">
+      <div class="topbar">
+        <div>
+          <label>Date</label>
+          <input id="date" type="date" />
+        </div>
+        <div class="summary">
+          <div class="small">Students:</div>
+          <div id="count" class="small">0</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="flex:1">
+          <label>Add / find student</label>
+          <input id="newStudent" placeholder="Type name and press Add" />
+        </div>
+        <div>
+          <button id="addBtn" class="btn">Add</button>
+        </div>
+      </div>
+
+      <div class="student-list" id="studentList" aria-live="polite"></div>
+
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button id="importCsv" class="btn ghost">Import CSV</button>
+        <input id="fileInput" type="file" accept="text/csv" style="display:none" />
+        <button id="exportCsv" class="btn ghost">Export CSV</button>
+      </div>
+
+      <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+      <div>
+        <label>Owner WhatsApp number</label>
+        <input id="ownerNumber" value="+23059237053" />
+        <div class="small" style="margin-top:6px">This number receives the daily compiled report. Change if needed.</div>
+      </div>
+
+    </div>
+
+    <!-- Right column: task entry & live table -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <label>Processor (Zahiir)</label>
+          <input id="processorName" placeholder="Zahiir" value="Zahiir" />
+        </div>
+
+        <div style="text-align:right">
+          <label>Quick actions</label>
+          <div style="display:flex;gap:8px">
+            <button id="autoFill" class="btn ghost">Auto-fill today's submissions (demo)</button>
+            <button id="generate" class="btn">Generate Report</button>
+          </div>
+        </div>
+      </div>
+
+      <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="width:340px">
+          <label>Select student</label>
+          <select id="selectStudent" style="width:100%"></select>
+
+          <div class="tasks">
+            <label><input type="checkbox" id="taskPT" /> Physical Training (PT)</label>
+            <label><input type="checkbox" id="taskMF" /> Mental Fuel (MF)</label>
+            <label><input type="checkbox" id="taskMD" /> Mind Discipline (MD)</label>
+            <label><input type="checkbox" id="taskMR" /> Midnight Reflection (MR)</label>
+            <label><input type="checkbox" id="taskBR" /> Breath Ritual (BR)</label>
+            <label><input type="checkbox" id="taskAP" /> Aura Protection (AP)</label>
+          </div>
+
+          <div class="controls">
+            <button id="submitBtn" class="btn">Submit</button>
+            <button id="clearBtn" class="btn ghost">Clear</button>
+            <button id="deleteBtn" class="btn ghost">Delete Student</button>
+          </div>
+
+          <div style="margin-top:8px">
+            <label>Notes (optional)</label>
+            <input id="notes" placeholder="quick note or evidence summary" />
+          </div>
+        </div>
+
+        <div style="flex:1">
+          <label>Today's Ranking</label>
+          <div id="tableWrap" style="max-height:58vh;overflow:auto;">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Tasks</th><th>Points</th><th>Action</th></tr>
+              </thead>
+              <tbody id="rankingBody"></tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <button id="sendWhatsApp" class="btn">Send Report via WhatsApp</button>
+            <button id="copyReport" class="btn ghost">Copy Report</button>
+            <button id="clearDay" class="btn ghost">Clear Today's Data</button>
+          </div>
+
+        </div>
+      </div>
+
+      <footer>
+        Data is stored locally in your browser (localStorage). Use Export CSV to backup. Works offline and on mobile. To reset everything clear browser storage.
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ---- Config: change if needed ----
+    const TASK_WEIGHTS = { PT:30, MF:20, MD:15, MR:15, BR:10, AP:10 };
+    const STORAGE_KEY = 'blos_students_v1';
+
+    // ---- DOM ----
+    const dateEl = document.getElementById('date');
+    const newStudentEl = document.getElementById('newStudent');
+    const addBtn = document.getElementById('addBtn');
+    const studentListEl = document.getElementById('studentList');
+    const selectStudentEl = document.getElementById('selectStudent');
+    const submitBtn = document.getElementById('submitBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const taskEls = { PT:document.getElementById('taskPT'), MF:document.getElementById('taskMF'), MD:document.getElementById('taskMD'), MR:document.getElementById('taskMR'), BR:document.getElementById('taskBR'), AP:document.getElementById('taskAP') };
+    const notesEl = document.getElementById('notes');
+    const rankingBody = document.getElementById('rankingBody');
+    const countEl = document.getElementById('count');
+    const exportCsvBtn = document.getElementById('exportCsv');
+    const importCsvBtn = document.getElementById('importCsv');
+    const fileInput = document.getElementById('fileInput');
+    const ownerNumberEl = document.getElementById('ownerNumber');
+    const sendWhatsAppBtn = document.getElementById('sendWhatsApp');
+    const copyReportBtn = document.getElementById('copyReport');
+    const clearDayBtn = document.getElementById('clearDay');
+    const processorEl = document.getElementById('processorName');
+    const autoFillBtn = document.getElementById('autoFill');
+
+    // ---- state ----
+    let state = { students: [], submissions: {} };
+
+    // ---- helpers ----
+    function todayISO(){return dateEl.value || new Date().toISOString().slice(0,10)}
+    function load(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ state = JSON.parse(raw); }
+      else { // bootstrap 43 sample slots (empty names)
+        if(!state.students.length){ state.students = [
+          "Ayaan","Shawn","Zubair","Imran","Yusuf","Omar","Ibrahim","Nidal","Firas","Samir",
+          "Karim","Rayan","Zahiir","Tariq","Kamal","Farouk","Anil","Ravi","Rashid","Sami",
+          "Bilal","Naveen","Arjun","Sameer","Hassan","Adil","Zakir","Moe","Ilyas","Jamal",
+          "Nizar","Waseem","Fahad","Rauf","Aziz","Manu","Ehsan","Danish","Rizwan","Shad",
+          "Mansoor","Yaseen","Rana","Zeeshan","Khalid"
+        ].map(n=>({name:n})); }
+      }
+      renderStudentList(); renderSelect(); renderRanking();
+    }
+
+    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+    function renderStudentList(){
+      studentListEl.innerHTML='';
+      state.students.forEach((s,idx)=>{
+        const div = document.createElement('div'); div.className='student-item';
+        const left = document.createElement('div');
+        left.innerHTML = `<strong>${s.name}</strong><div class='small'>${s.note||''}</div>`;
+        const right = document.createElement('div');
+        const btn = document.createElement('button'); btn.className='btn ghost'; btn.textContent='Quick';
+        btn.onclick = ()=>{ selectStudentEl.value = idx; populateFromStudent(idx); };
+        right.appendChild(btn);
+        div.appendChild(left); div.appendChild(right);
+        studentListEl.appendChild(div);
+      });
+      countEl.textContent = state.students.length;
+    }
+
+    function renderSelect(){ selectStudentEl.innerHTML=''; state.students.forEach((s,idx)=>{
+      const opt = document.createElement('option'); opt.value=idx; opt.textContent = `${s.name}`; selectStudentEl.appendChild(opt);
+    }); }
+
+    function getDayKey(d){ return 'day_' + d; }
+    function getSubmissionsForDate(d){ return state.submissions[d] || {}; }
+
+    function populateFromStudent(idx){
+      const day = todayISO(); const subs = getSubmissionsForDate(day);
+      selectStudentEl.value = idx;
+      const entry = subs[idx] || {tasks:{},notes:''};
+      Object.keys(taskEls).forEach(k=> taskEls[k].checked = !!entry.tasks[k]);
+      notesEl.value = entry.notes||'';
+    }
+
+    function submitForSelected(){
+      const idx = parseInt(selectStudentEl.value,10);
+      if(isNaN(idx)) return alert('Select a student');
+      const day = todayISO(); if(!state.submissions[day]) state.submissions[day] = {};
+      const tasks = {};
+      Object.keys(taskEls).forEach(k=> tasks[k] = !!taskEls[k].checked);
+      state.submissions[day][idx] = { tasks, notes: notesEl.value||'', time: new Date().toISOString(), by: processorEl.value };
+      save(); renderRanking(); alert('Saved for '+state.students[idx].name);
+    }
+
+    function clearEntry(){ Object.keys(taskEls).forEach(k=> taskEls[k].checked=false); notesEl.value=''; }
+
+    function deleteStudent(){
+      const idx = parseInt(selectStudentEl.value,10);
+      if(isNaN(idx)) return alert('Select a student first');
+      if(!confirm('Delete '+state.students[idx].name+'?')) return;
+      state.students.splice(idx,1);
+      // remove submissions references
+      for(const d in state.submissions){ delete state.submissions[d][idx]; }
+      save(); renderStudentList(); renderSelect(); renderRanking();
+    }
+
+    function scoreForTasks(tasks){
+      let total=0; Object.keys(TASK_WEIGHTS).forEach(k=>{ if(tasks[k]) total += TASK_WEIGHTS[k]; }); return total; }
+
+    function renderRanking(){
+      const day = todayISO(); const subs = getSubmissionsForDate(day);
+      const rows = state.students.map((s,idx)=>{
+        const entry = subs[idx]; const tasks = entry?entry.tasks:{}; const points = entry ? scoreForTasks(tasks) : 0; return {idx,name:s.name,points,tasks,notes:entry?entry.notes:'',time:entry?entry.time:''};
+      });
+      rows.sort((a,b)=>b.points - a.points || a.name.localeCompare(b.name));
+      rankingBody.innerHTML='';
+      rows.forEach((r,i)=>{
+        const tr = document.createElement('tr');
+        const tasksText = Object.keys(r.tasks||{}).filter(k=>r.tasks[k]).join(', ') || '-';
+        tr.innerHTML = `<td>${i+1}</td><td>${r.name}</td><td>${tasksText}</td><td>${r.points}</td><td><button class='btn ghost' data-idx='${r.idx}'>Edit</button></td>`;
+        tr.querySelector('button').onclick = ()=>{ selectStudentEl.value = r.idx; populateFromStudent(r.idx); window.scrollTo({top:0,behavior:'smooth'}); };
+        rankingBody.appendChild(tr);
+      });
+    }
+
+    // ---- CSV export/import ----
+    function exportCsv(){
+      const day = todayISO(); const subs = getSubmissionsForDate(day);
+      const lines = ["idx,name,points,tasks,notes,time"]; state.students.forEach((s,idx)=>{
+        const e = subs[idx]||{tasks:{}}; const pts = scoreForTasks(e.tasks||{}); const tasksText = Object.keys(e.tasks||{}).filter(k=>e.tasks[k]).join('|');
+        lines.push(`${idx},"${s.name}",${pts},"${tasksText}","${(e.notes||'').replace(/\"/g,'""')}","${e.time||''}"`);
+      });
+      const blob = new Blob([lines.join('\n')],{type:'text/csv'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download = `blos_report_${day}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    function importCsvFile(file){
+      const reader = new FileReader(); reader.onload = e=>{
+        const text = e.target.result; const rows = text.split(/\r?\n/).slice(1).filter(Boolean);
+        rows.forEach(r=>{ const cols = parseCsvRow(r); const idx = parseInt(cols[0],10); if(isNaN(idx)) return; if(!state.students[idx]) state.students[idx] = {name:cols[1]||('Student '+idx)}; const tasksList = (cols[3]||'').split('|').filter(Boolean); const tasksObj = {}; Object.keys(TASK_WEIGHTS).forEach(k=> tasksObj[k]= tasksList.includes(k)); const day = todayISO(); if(!state.submissions[day]) state.submissions[day] = {}; state.submissions[day][idx] = {tasks:tasksObj, notes:cols[4]||'', time:cols[5]||new Date().toISOString(), by:processorEl.value}; });
+        save(); renderStudentList(); renderSelect(); renderRanking(); alert('Imported CSV rows: '+rows.length);
+      };
+      reader.readAsText(file);
+    }
+    function parseCsvRow(row){ // naive CSV parse for this simple format
+      const parts = []; let cur=''; let inq=false; for(let i=0;i<row.length;i++){ const ch=row[i]; if(ch=='"'){ inq=!inq; continue;} if(ch==',' && !inq){ parts.push(cur); cur=''; continue; } cur+=ch; } parts.push(cur); return parts.map(p=>p.trim()); }
+
+    // ---- WhatsApp report generation ----
+    function buildReportText(){
+      const day = todayISO(); const subs = getSubmissionsForDate(day);
+      const rows = state.students.map((s,idx)=>{
+        const e = subs[idx]||{tasks:{}}; const pts = scoreForTasks(e.tasks||{}); const tasksText = Object.keys(e.tasks||{}).filter(k=>e.tasks[k]).map(k=>taskLabel(k)).join(', ') || '-'; return {name:s.name,pts,tasks:tasksText};
+      });
+      rows.sort((a,b)=>b.pts - a.pts || a.name.localeCompare(b.name));
+      const top = rows.slice(0,5);
+      let msg = `BLACK LION DAILY REPORT\nDate: ${day}\nProcessor: ${processorEl.value}\n\nTop performers:\n`;
+      top.forEach((r,i)=> msg += `${i+1}. ${r.name} — ${r.pts} pts — ${r.tasks}\n`);
+      msg += `\nFull ranking:\n`;
+      rows.forEach((r,i)=> msg += `${i+1}. ${r.name} — ${r.pts} pts\n`);
+      msg += `\nNotes: Report generated by Black Lion Console.`;
+      return msg;
+    }
+    function taskLabel(k){ return {PT:'Physical Training',MF:'Mental Fuel',MD:'Mind Discipline',MR:'Midnight Reflection',BR:'Breath Ritual',AP:'Aura Protection'}[k] || k }
+
+    function openWhatsApp(){
+      const number = ownerNumberEl.value.replace(/[^+0-9]/g,'');
+      if(!number) return alert('Set owner phone number');
+      const text = buildReportText();
+      const url = `https://wa.me/${number.replace('+','')}` + `?text=` + encodeURIComponent(text);
+      window.open(url,'_blank');
+    }
+
+    function copyReport(){ navigator.clipboard.writeText(buildReportText()).then(()=>alert('Report copied to clipboard')) }
+
+    // ---- utilities ----
+    function ensureDate(){ if(!dateEl.value){ dateEl.value = new Date().toISOString().slice(0,10); } }
+
+    // ---- events ----
+    addBtn.onclick = ()=>{
+      const name = newStudentEl.value.trim(); if(!name) return alert('Type a student name'); state.students.push({name}); newStudentEl.value=''; save(); renderStudentList(); renderSelect(); alert('Added '+name);
+    };
+    submitBtn.onclick = submitForSelected;
+    clearBtn.onclick = clearEntry;
+    deleteBtn.onclick = deleteStudent;
+    exportCsvBtn.onclick = exportCsv;
+    importCsvBtn.onclick = ()=> fileInput.click();
+    fileInput.onchange = e=>{ if(e.target.files.length) importCsvFile(e.target.files[0]); };
+    sendWhatsAppBtn.onclick = openWhatsApp;
+    copyReportBtn.onclick = copyReport;
+    clearDayBtn.onclick = ()=>{ if(!confirm('Clear all submissions for '+todayISO()+' ?')) return; delete state.submissions[todayISO()]; save(); renderRanking(); };
+    autoFillBtn.onclick = ()=>{ // demo helper to auto-fill random submissions for testing
+      const day = todayISO(); state.submissions[day] = state.submissions[day] || {};
+      state.students.forEach((s,idx)=>{
+        const p = Math.random(); const tasks = { PT: p>0.4, MF: p>0.5, MD: p>0.6, MR: p>0.7, BR: p>0.5, AP: p>0.65 };
+        state.submissions[day][idx] = {tasks, notes:'auto demo', time:new Date().toISOString(), by:processorEl.value};
+      }); save(); renderRanking(); alert('Demo filled for today'); };
+
+    generate.onclick = ()=>{ renderRanking(); alert('Ranking generated for '+todayISO()); };
+
+    // hotkeys: Ctrl+Enter to submit
+    document.addEventListener('keydown',e=>{ if(e.ctrlKey && e.key==='Enter'){ submitForSelected(); } });
+
+    // file load
+    ensureDate(); load();
+
+  </script>
+</body>
+</html>
